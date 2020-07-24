@@ -1,0 +1,1 @@
+import * as block from './block-screen/block-screen';
