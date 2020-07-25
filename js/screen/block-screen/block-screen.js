@@ -49,6 +49,7 @@ let config = {
     options: {
         duration: 200,
         iterations: 1,
+        moveTo: true
     }
 }
 
@@ -63,17 +64,21 @@ function getSwipeCoords(event) {
     if (previousCoords.y === null) {
         console.log(event);
         previousCoords = event;
+        config.options.sign = true;
     }
 
     if (destroyAnimate$ !== null) {
         if (previousCoords.y < event.y) {
             console.log('down');
-            destroyAnimate$.unsubscribe()
+            destroyAnimate$.unsubscribe();
+            config.options.sign = false;
         } else {
             console.log('up');
             destroyAnimate$.unsubscribe()
+            config.options.sign = true;
         }
     }
+    // console.log(config.options.sign);
 
     previousCoords = event;
 }
@@ -83,7 +88,7 @@ function lineAnimate(event) {
     animateLineStatus = true;
 
     bottomLineCount += 1;
-    return animateStyle(100, screensaverBlockingLine, config).subscribe(res => {
+    return animateStyle(30, screensaverBlockingLine, config).subscribe(res => {
         config = res
     });
 }

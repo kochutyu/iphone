@@ -210,7 +210,10 @@ export function animateStyle(steps, element, config) {
                     tap(time => {
                         // console.log(style);
                         if (time !== 0) {
-                            style.selectValue += 1;
+
+                            console.log(config.options.sign);
+                            config.options.sign ? style.selectValue += 1 : style.selectValue -= 1;
+                            // style.selectValue += 1;
                             element.style[style.keyName] = `${style.selectValue}${style.selectUnit}`;
                         }
                     }),
