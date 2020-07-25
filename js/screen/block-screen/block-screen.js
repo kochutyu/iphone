@@ -47,23 +47,49 @@ let config = {
         bottom: '70px'
     },
     options: {
-        duration: 500,
+        duration: 200,
         iterations: 1,
     }
 }
 
+let previousCoords = {
+    x: null,
+    y: null
+};
+
+let destroyAnimate$ = null;
+
+function getSwipeCoords(event) {
+    if (previousCoords.y === null) {
+        console.log(event);
+        previousCoords = event;
+    }
+
+    if (destroyAnimate$ !== null) {
+        if (previousCoords.y < event.y) {
+            console.log('down');
+            destroyAnimate$.unsubscribe()
+        } else {
+            console.log('up');
+            destroyAnimate$.unsubscribe()
+        }
+    }
+
+    previousCoords = event;
+}
 
 function lineAnimate(event) {
-    console.log(event);
 
     animateLineStatus = true;
 
-    animateStyle(100, screensaverBlockingLine, config).subscribe(res => {
+    bottomLineCount += 1;
+    return animateStyle(100, screensaverBlockingLine, config).subscribe(res => {
         config = res
     });
-    bottomLineCount += 1;
 }
-
+// destroyAnimate$.pipe(
+//     tap(_ => console.log(_ + 'lol'))
+// )
 // SWIPE SCREEN
 const startSwipe$ = fromEvent(screensaverBlocking, 'mousedown')
     .pipe(
@@ -72,7 +98,13 @@ const startSwipe$ = fromEvent(screensaverBlocking, 'mousedown')
         map(v => converToCoords(v)),
         tap(_ => curentHeightSwipe++),
         // tap(e => console.log(e)),
-        tap(lineAnimate),
+        // tap(lineAnimate),
+        tap(e => getSwipeCoords(e)),
+        map(e => {
+            destroyAnimate$ = lineAnimate(e);
+            return destroyAnimate$;
+        }),
+        // tap(_ => _.unsubscribe()),
         repeat()
     )
 
