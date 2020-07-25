@@ -12,7 +12,9 @@ import {
 
 import {
     fromEvent,
-    merge
+    merge,
+    Subject,
+    BehaviorSubject
 } from 'rxjs';
 
 import {
@@ -32,6 +34,8 @@ let animateLineStatus = false;
 let curentHeightSwipe = 0;
 
 let endSwipeStatus = false;
+
+const nextPX = new Subject();
 
 function lineAnimate() {
     if (!screensaverBlockingLine.animate) return;
@@ -87,8 +91,8 @@ function lineAnimate() {
             iterations: 1,
         }
     }
-    animateStyle(100, screensaverBlockingLine, config);
-    animateStyle(1, screensaverBlocking, configBGC);
+    animateStyle(100, screensaverBlockingLine, config).subscribe(res => console.log(res));
+    animateStyle(1, screensaverBlocking, configBGC, nextPX);
 
     // merge(
     //     animateStyle(100, screensaverBlockingLine, config),
@@ -113,7 +117,7 @@ const startSwipe$ = fromEvent(screensaverBlocking, 'mousedown')
 const endSwipe$ = fromEvent(screensaverBlocking, 'mouseup')
     .pipe(
         tap(_ => animateBlockScreen()),
-        tap(_ => resetData())
+        tap(_ => resetData()),
     )
 
 function animateBlockScreen() {

@@ -70,13 +70,77 @@ export function converToCoords(velue) {
 }
 
 export function animateStyle(steps, element, config) {
-    // console.log(steps);
-    const durationForStep = Math.floor((config.options.duration / steps));
-    // console.log(durationForStep);
 
-    // for (let i = 0; i < steps; i++) {
+    const durationForStep = Math.floor((config.options.duration / steps));
+
     let animation = [];
-    const animatinSteps = new Array(steps).fill(1);
+
+    let startArrStyle = [];
+    let endArrStyle = [];
+    const styles = from(startArrStyle);
+
+    const unitOfMeasurement = [
+        '%', 'cm', 'em', 'ex', 'in', 'mm', 'pc', 'pt', 'px', 'vh', 'vw', 'vmin'
+    ];
+
+    // # rgb rgba //!word
+
+    // opacity: 0.7
+    // const name = [opacity, tranform, ]
+
+    let startDefault = {
+        keyName: null,
+        keyValue: null,
+        selectValue: null,
+        selectUnit: null,
+        selectUnitLength: null
+    }
+
+    let endDefault = {
+        keyName: null,
+        keyValue: null,
+        selectValue: null,
+        selectUnit: null,
+        selectUnitLength: null
+    };
+
+    const startDefault$ = new BehaviorSubject(startDefault) // TODO: get obj for work
+        .subscribe(res => {
+            startDefault = res;
+        });
+
+    const setStartDefault = (unit, style, key) => {
+        const selectUnit = unit;
+        const selectUnitLength = unit.split('').length;
+        const keyName = key;
+        const keyValue = style[key];
+        const selectValue = +keyValue
+            .slice(0, -selectUnitLength);
+        const newStartDefault = {
+            keyName,
+            keyValue,
+            selectValue,
+            selectUnit,
+            selectUnitLength
+        }
+        startDefault$.next(newStartDefault);
+    }
+
+    const createObjForStartDefault = () => {
+        Object.keys(config.start).map(key => {
+            const style = Object.create(config.start);
+            style[key] = config.start[key];
+            startArrStyle.push(style);
+        })
+    }
+
+    const createObjForEndDefault = () => {
+        Object.keys(config.end).map(key => {
+            const style = Object.create(config.end);
+            style[key] = config.end[key];
+            endArrStyle.push(style);
+        })
+    }
 
     if (!element.animate || !config || !config.options) return;
 
@@ -92,58 +156,11 @@ export function animateStyle(steps, element, config) {
 
         animation = [config.start, config.end];
 
-        let startArrStyle = [];
-        let endArrStyle = [];
-        const styles = from(startArrStyle);
+        createObjForStartDefault();
 
-        const unitOfMeasurement = [
-            '%', 'cm', 'em', 'ex', 'in', 'mm', 'pc', 'pt', 'px', 'vh', 'vw', 'vmin'
-        ];
+        createObjForEndDefault();
 
-        // # rgb rgba //!word
-
-        // opacity: 0.7
-        // const name = [opacity, tranform, ]
-
-        let startDefault = {
-            keyName: null,
-            keyValue: null,
-            selectValue: null,
-            selectUnit: null,
-            selectUnitLength: null
-        }
-        let endDefault = {
-            keyName: null,
-            keyValue: null,
-            selectValue: null,
-            selectUnit: null,
-            selectUnitLength: null
-        };
-
-        // TODO: create obj for start default
-        Object.keys(config.start).map(key => {
-            const style = Object.create(config.start);
-            style[key] = config.start[key];
-            startArrStyle.push(style);
-        })
-
-        // TODO: create obj for end default
-        Object.keys(config.end).map(key => {
-            const style = Object.create(config.end);
-            style[key] = config.end[key];
-            endArrStyle.push(style);
-        })
-
-        // console.log(endArrStyle, 'THIS');
-
-        const startDefault$ = new BehaviorSubject(startDefault)
-            .subscribe(res => {
-                startDefault = res;
-            });
-
-        let counti = 0;
-
-        function setStyle$(style, i) {
+        const setStyle$ = (style, index) => {
             return (
                 interval(durationForStep)
                 .pipe(
@@ -158,28 +175,6 @@ export function animateStyle(steps, element, config) {
             )
         }
 
-        function setStartDefault(unit, style, key) {
-            const selectUnit = unit;
-            const selectUnitLength = unit.split('').length;
-            const keyName = key;
-            const keyValue = style[key];
-            const selectValue = +keyValue
-                .slice(0, -selectUnitLength);
-            const newStartDefault = {
-                keyName,
-                keyValue,
-                selectValue,
-                selectUnit,
-                selectUnitLength
-            }
-            startDefault$.next(newStartDefault);
-        }
-
-        function setEndDefault() {
-
-        }
-
-        // console.log(styles);
         const findUnitForStartDefault$ = styles
             .pipe(
                 filter(style => {
@@ -199,19 +194,9 @@ export function animateStyle(steps, element, config) {
                 // tap(v => console.log(v)),
                 mergeMap(setStyle$),
                 repeat(1)
-            ).subscribe(res => console.log())
+            )
 
-        let keyStyle = [];
-        const setAnimation$ = styles
-            .pipe(
-                // tap(v => console.log(v)),
-                // switchMap(findUnitForStyle$),
-                repeat(1)
-                // mergeMap(_ => timer(1000)),
-                // mergeMap(setStyle$),
-                // tap(_ => console.log(_)),
-
-            ).subscribe(res => console.log())
-
+        return from(findUnitForStartDefault$);
     }
+
 }
