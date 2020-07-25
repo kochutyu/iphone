@@ -50,12 +50,20 @@ export function takeMouseSwipe(domElement) {
             switchMap(_ => (
                 fromEvent(domElement, 'mousemove')
                 .pipe(
-                    blockDropElement()
+                    blockDropElement(),
+                    tap(_ => {
+                        domElement.style.cursor = 'pointer';
+                    })
                 )
             )),
             // once mouse is up, we end swipe
             takeUntil(
                 fromEvent(domElement, 'mouseup')
+                .pipe(
+                    tap(_ => {
+                        domElement.style.cursor = 'default';
+                    })
+                )
             ),
             throttleTime(50)
         )

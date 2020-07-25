@@ -23,21 +23,7 @@ import {
     map
 } from 'rxjs/operators';
 
-let bottomLineCount = 20;
-let animateLineStatus = false;
-// function converToCoords(velue) {
-//     return {
-//         x: velue.x,
-//         y: velue.y
-//     }
-// }
-let curentHeightSwipe = 0;
-
-let endSwipeStatus = false;
-
-const nextPX = new Subject();
-
-let config = {
+let linePosition = {
     start: {
         bottom: '20px',
     },
@@ -48,7 +34,36 @@ let config = {
     },
     options: {
         duration: 200,
-        iterations: 1,
+        moveTo: true
+    }
+}
+
+let lineWidth = {
+    start: {
+        width: '80px',
+    },
+    end: {
+        background: 'red',
+        width: '20%',
+        bottom: '70px'
+    },
+    options: {
+        duration: 200,
+        moveTo: true
+    }
+}
+
+let bgcPosition = {
+    start: {
+        top: '0px',
+    },
+    end: {
+        background: 'red',
+        width: '20%',
+        bottom: '70px'
+    },
+    options: {
+        duration: 200,
         moveTo: true
     }
 }
@@ -60,79 +75,69 @@ let previousCoords = {
 
 let destroyAnimate$ = null;
 
-function getSwipeCoords(event) {
+function getSwipeCoords(currentCoords) {
     if (previousCoords.y === null) {
-        console.log(event);
+        // console.log(event);
         previousCoords = event;
-        config.options.sign = true;
+        linePosition.options.sign = true;
+        lineWidth.options.sign = true;
+        bgcPosition.options.sign = true;
     }
 
     if (destroyAnimate$ !== null) {
         if (previousCoords.y < event.y) {
-            console.log('down');
+            // console.log('down');
             destroyAnimate$.unsubscribe();
-            config.options.sign = false;
+            linePosition.options.sign = false;
+            lineWidth.options.sign = false;
+            bgcPosition.options.sign = true;
         } else {
-            console.log('up');
+            // console.log('up');
             destroyAnimate$.unsubscribe()
-            config.options.sign = true;
+            linePosition.options.sign = true;
+            lineWidth.options.sign = true;
+            bgcPosition.options.sign = false;
         }
     }
-    // console.log(config.options.sign);
 
     previousCoords = event;
 }
 
-function lineAnimate(event) {
+function animateElements(event) {
 
-    animateLineStatus = true;
+    const linePositionAnimate$ = animateStyle(30, screensaverBlockingLine, linePosition).pipe(
+        tap(newStyle => linePosition = newStyle)
+    )
 
-    bottomLineCount += 1;
-    return animateStyle(30, screensaverBlockingLine, config).subscribe(res => {
-        config = res
-    });
+    const lineWidthAnimate$ = animateStyle(30, screensaverBlockingLine, lineWidth).pipe(
+        tap(newStyle => lineWidth = newStyle)
+    )
+
+    const bgcPositionAnimate$ = animateStyle(70, screensaverBlocking, bgcPosition).pipe(
+        tap(newStyle => bgcPosition = newStyle)
+    )
+
+    return merge(linePositionAnimate$, lineWidthAnimate$, bgcPositionAnimate$).subscribe();
 }
-// destroyAnimate$.pipe(
-//     tap(_ => console.log(_ + 'lol'))
-// )
+
+
 // SWIPE SCREEN
 const startSwipe$ = fromEvent(screensaverBlocking, 'mousedown')
     .pipe(
         takeMouseSwipe(screensaverBlocking),
-        tap(endSwipeStatus = false),
-        map(v => converToCoords(v)),
-        tap(_ => curentHeightSwipe++),
-        // tap(e => console.log(e)),
-        // tap(lineAnimate),
-        tap(e => getSwipeCoords(e)),
-        map(e => {
-            destroyAnimate$ = lineAnimate(e);
+        map(event => converToCoords(event)),
+        tap(currentCoords => getSwipeCoords(currentCoords)),
+        map(currentCoords => {
+            destroyAnimate$ = animateElements(currentCoords);
             return destroyAnimate$;
         }),
-        // tap(_ => _.unsubscribe()),
         repeat()
     )
 
-
 const endSwipe$ = fromEvent(screensaverBlocking, 'mouseup')
     .pipe(
-        tap(_ => animateBlockScreen()),
-        tap(_ => resetData()),
+        // tap(_ => animateBlockScreen()),
     )
-
-function animateBlockScreen() {
-    if (bottomLineCount > 15) {
-        // console.log(15);
-    } else {
-        // console.log(0);
-    }
-}
-
-function resetData() {
-    bottomLineCount = 20;
-    animateLineStatus = false;
-    // screensaverBlockingLine.style.bottom = '20px'
-}
 
 merge(
     startSwipe$,
