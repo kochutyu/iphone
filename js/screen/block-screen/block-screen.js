@@ -37,67 +37,30 @@ let endSwipeStatus = false;
 
 const nextPX = new Subject();
 
-function lineAnimate() {
-    if (!screensaverBlockingLine.animate) return;
+let config = {
+    start: {
+        bottom: '20px',
+    },
+    end: {
+        background: 'red',
+        width: '20%',
+        bottom: '70px'
+    },
+    options: {
+        duration: 500,
+        iterations: 1,
+    }
+}
+
+
+function lineAnimate(event) {
+    console.log(event);
 
     animateLineStatus = true;
 
-    // const animation = [{
-    //         background: '#ffffff',
-    //         bottom: animateLineStatus ? (bottomLineCount) + 'px' : null
-    //     },
-    //     {
-    //         background: 'red',
-    //         bottom: animateLineStatus ? (bottomLineCount += 4) + 'px' : null
-    //     }
-    // ];
-    // const animationOptions = {
-    //     duration: 300,
-    //     iterations: 1,
-    // };
-    // screensaverBlockingLine.animate(animation, animationOptions);
-    // screensaverBlockingLine.style.bottom = animateLineStatus ? (bottomLineCount += 4) + 'px' : null;
-    // }
-    const config = {
-        start: {
-            background: '#ffffff',
-            bottom: '20px',
-            width: '50px'
-        },
-        end: {
-            background: 'red',
-            width: '20%',
-            bottom: '70px'
-        },
-        options: {
-            duration: 300,
-            iterations: 1,
-        }
-    }
-
-    const configBGC = {
-        start: {
-            background: 'red',
-            bottom: '30px',
-            opacity: '0.5',
-        },
-        end: {
-            background: 'red',
-            width: '20%',
-            bottom: '22px'
-        },
-        options: {
-            duration: 300,
-            iterations: 1,
-        }
-    }
-    animateStyle(100, screensaverBlockingLine, config).subscribe(res => console.log(res));
-    animateStyle(1, screensaverBlocking, configBGC, nextPX);
-
-    // merge(
-    //     animateStyle(100, screensaverBlockingLine, config),
-    //     animateStyle(1, screensaverBlocking, configBGC)
-    // ).subscribe();
+    animateStyle(100, screensaverBlockingLine, config).subscribe(res => {
+        config = res
+    });
     bottomLineCount += 1;
 }
 

@@ -160,17 +160,73 @@ export function animateStyle(steps, element, config) {
 
         createObjForEndDefault();
 
+        const saveCurrentStule = [];
+        const keysNameOfStyle = [];
+
+        let count = 0;
+
+        let newConfig = {
+            start: null,
+            end: config.end,
+            options: config.options
+        }
+
+        const saveConfig$ = (item) => {
+            return interval(0).pipe(
+                map(_ => {
+                    // console.log(item);
+                    const styles = saveCurrentStule.filter(save => save.time === item.time);
+                    const newStart = {};
+                    // saveCurrentStule.shift();
+                    styles.forEach(style => {
+                        for (const key in style) {
+                            if (style.hasOwnProperty(key)) {
+                                newStart[key] = style[key];
+                            }
+                        }
+
+                    })
+                    delete newStart.time
+                    newConfig.start = newStart;
+                    if (count < 10) {
+                        // console.log(newConfig);
+                        count++
+                    }
+                }),
+                take(1)
+            )
+        }
+
+        const intervaled$ = () => interval()
+            .pipe(
+                // tap(v => console.log(v, 'THIS')),
+                take(steps + 1)
+            )
+
         const setStyle$ = (style, index) => {
             return (
                 interval(durationForStep)
                 .pipe(
                     tap(time => {
+                        // console.log(style);
                         if (time !== 0) {
                             style.selectValue += 1;
                             element.style[style.keyName] = `${style.selectValue}${style.selectUnit}`;
                         }
                     }),
-                    take(steps + 1)
+                    // map(v => v = style),
+                    map(time => {
+                        const newConfig = Object.create(style);
+                        newConfig[style.keyName] = `${style.selectValue}${style.selectUnit}`;
+                        newConfig.time = time;
+                        return newConfig;
+                    }),
+                    tap(config => {
+                        saveCurrentStule.push(config);
+                        saveCurrentStule.sort((a, b) => a.time - b.time);
+                    }),
+                    take(steps + 1),
+                    mergeMap(saveConfig$)
                 )
             )
         }
@@ -191,12 +247,37 @@ export function animateStyle(steps, element, config) {
 
                 }),
                 map(style => style = startDefault),
+                tap(style => keysNameOfStyle.push(style.keyName)),
+
                 // tap(v => console.log(v)),
                 mergeMap(setStyle$),
+                switchMap(intervaled$),
                 repeat(1)
             )
 
-        return from(findUnitForStartDefault$);
+        const getNewPosition = () => {
+            const newConfig = {
+                start: {
+                    background: '#ffffff',
+                    bottom: '20px',
+                    width: '50px'
+                },
+                end: {
+                    background: 'red',
+                    width: '20%',
+                    bottom: '70px'
+                },
+                options: {
+                    duration: 50,
+                    iterations: 1,
+                }
+            }
+            return newConfig
+        }
+
+        return from(findUnitForStartDefault$).pipe(
+            map(_ => newConfig)
+        );
     }
 
 }
