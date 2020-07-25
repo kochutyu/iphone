@@ -26,6 +26,7 @@ import {
     filter,
     delay,
     take,
+    takeLast,
 } from 'rxjs/operators';
 
 import {
@@ -70,145 +71,139 @@ export function converToCoords(velue) {
 
 export function animateStyle(steps, element, config) {
 
-    for (let i = 0; i < steps; i++) {
-        let animation = [];
+    // for (let i = 0; i < steps; i++) {
+    let animation = [];
+    const animatinSteps = new Array(steps).fill(1);
 
-        if (!element.animate || !config || !config.options) return;
+    if (!element.animate || !config || !config.options) return;
 
-        if (config.start) {
-            animation = [config.start, null];
+    if (config.start) {
+        animation = [config.start, null];
+    }
+
+    if (config.end) {
+        animation = [config.end, null];
+    }
+
+    if (config.start && config.end) {
+
+        animation = [config.start, config.end];
+
+        let startArrStyle = [];
+        let endArrStyle = [];
+        const styles = from(startArrStyle);
+
+        const unitOfMeasurement = [
+            '%', 'cm', 'em', 'ex', 'in', 'mm', 'pc', 'pt', 'px', 'vh', 'vw', 'vmin'
+        ];
+
+        let startDefault = {
+            keyName: null,
+            keyValue: null,
+            selectValue: null,
+            selectUnit: null,
+            selectUnitLength: null
         }
+        let endDefault = {
+            keyName: null,
+            keyValue: null,
+            selectValue: null,
+            selectUnit: null,
+            selectUnitLength: null
+        };
 
-        if (config.end) {
-            animation = [config.end, null];
-        }
+        // TODO: create obj for start default
+        Object.keys(config.start).map(key => {
+            const style = Object.create(config.start);
+            style[key] = config.start[key];
+            startArrStyle.push(style);
+        })
 
-        if (config.start && config.end) {
+        // TODO: create obj for end default
+        Object.keys(config.end).map(key => {
+            const style = Object.create(config.end);
+            style[key] = config.end[key];
+            endArrStyle.push(style);
+        })
 
-            animation = [config.start, config.end];
+        console.log(endArrStyle, 'THIS');
 
-            let startArrStyle = [];
-            const styles = from(startArrStyle);
-            const unitOfMeasurement = [
-                '%', 'cm', 'em', 'ex', 'in', 'mm', 'pc', 'pt', 'px', 'vh', 'vw', 'vmin'
-            ];
+        const startDefault$ = new BehaviorSubject(startDefault)
+            .subscribe(res => {
+                startDefault = res;
+            });
 
+        let counti = 0;
 
-            let startDefault = {
-                selectUnit: null,
-                selectUnitLength: null,
-                keyValue: null,
-                newKeyValue: null,
-                value: null
-            }
-            const endDefault = config.end;
-
-            // TODO: create obj for style
-            Object.keys(config.start).map(key => {
-                const style = Object.create(config.start);
-                style[key] = config.start[key];
-                startArrStyle.push(style);
-            })
-
-            // const units = from(unitOfMeasurement);
-
-            const startDefault$ = new BehaviorSubject(startDefault)
-                .subscribe(res => {
-                    startDefault = res;
-                    console.log(res, 'THISI');
-                });
-
-
-            const findUnitForStyle$ = () => styles
+        function setStyle$(style, i) {
+            return (
+                interval(100)
                 .pipe(
-                    filter(style => {
-
-                        for (const key in style) {
-                            return unitOfMeasurement.some(unit => {
-                                if (JSON.stringify(style[key]).includes(unit)) {
-                                    const selectUnit = unit;
-                                    const selectUnitLength = unit.split('').length;
-                                    const keyValue = style[key];
-                                    const newKeyValue = keyValue
-                                        .slice(0, -selectUnitLength);
-                                    const value = `${+newKeyValue + 1}${selectUnit}`;
-                                    startDefault$.next({
-                                        selectUnit,
-                                        selectUnitLength,
-                                        keyValue,
-                                        newKeyValue,
-                                        value
-                                    });
-                                    return true;
-                                }
-                                return false;
-                            })
+                    tap(time => {
+                        if (time !== 0) {
+                            style.selectValue += 1;
+                            element.style[style.keyName] = `${style.selectValue}${style.selectUnit}`;
                         }
-
-                    })
+                    }),
+                    take(steps)
                 )
+            )
+        }
 
-            const setAnimation$ = styles
-                .pipe(
-                    switchMap(findUnitForStyle$),
-                    tap(style => {
-                        const value = `${+startDefault.newKeyValue + 1}${startDefault.selectUnit}`;
+        function setStartDefault(unit, style, key) {
+            const selectUnit = unit;
+            const selectUnitLength = unit.split('').length;
+            const keyName = key;
+            const keyValue = style[key];
+            const selectValue = +keyValue
+                .slice(0, -selectUnitLength);
+            const newStartDefault = {
+                keyName,
+                keyValue,
+                selectValue,
+                selectUnit,
+                selectUnitLength
+            }
+            startDefault$.next(newStartDefault);
+        }
 
-                        for (const key in style) {
-                            if (style.hasOwnProperty(key)) {
-                                element.style[key] = value;
-                            }
-                        }
-                    })
-                ).subscribe(res => {})
-
-
-
-            // forkJoin(
-            //     startDefault$,
-            //     setAnimation$
-            // ).subscribe(res => {
-            //     console.log(res, 'THIS');
-            // })
-
-            // Object.keys(config.start).forEach((key, i) => {
-            //     const includesUnitIndex = unitOfMeasurement.findIndex(
-            //         unit => JSON
-            //         .stringify(config.start[key])
-            //         .includes(unit)
-            //     );
-            //     let unit = null;
-            //     let unitLength = null;
-            //     let keyValue = config.start[key];
-            //     let newKeyValue = null;
-
-            //     if (includesUnitIndex !== -1) {
-            //         unit = unitOfMeasurement[includesUnitIndex];
-            //         unitLength = unit.split('').length;
-            //         newKeyValue = keyValue
-            //             .slice(0, -unitLength);
-            //         behaviorSub.next(`${+newKeyValue + 1}${unit}`);
-            //         behaviorSub
-            //             .pipe(
-            //                 // debounceTime(50),
-            //                 // tap(_ => (
-            //                 //     behaviorSub.next(`${+newKeyValue + 1}${unit}`)
-            //                 // ))
-            //             )
-            //             .subscribe(res => {
-            //                 console.log(res);
-            //                 element.style[key] = res;
-            //             });
-            // }
-
-            // if (typeof config.start[key] === 'number') {
-            //     element.style[key] = config.start[key];
-            // }
-
-            // });
-
+        function setEndDefault() {
 
         }
-        // element.animate(animation, config.options);
+
+        console.log(styles);
+        const findUnitForStartDefault$ = styles
+            .pipe(
+                filter(style => {
+
+                    for (const key in style) {
+                        return unitOfMeasurement.some(unit => {
+                            if (JSON.stringify(style[key]).includes(unit)) {
+                                setStartDefault(unit, style, key);
+                                return true;
+                            }
+                            return false;
+                        })
+                    }
+
+                }),
+                map(style => style = startDefault),
+                tap(v => console.log(v)),
+                mergeMap(setStyle$),
+                repeat(1)
+            ).subscribe(res => console.log())
+
+        let keyStyle = [];
+        const setAnimation$ = styles
+            .pipe(
+                // tap(v => console.log(v)),
+                // switchMap(findUnitForStyle$),
+                repeat(1)
+                // mergeMap(_ => timer(1000)),
+                // mergeMap(setStyle$),
+                // tap(_ => console.log(_)),
+
+            ).subscribe(res => console.log())
+
     }
 }

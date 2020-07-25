@@ -57,8 +57,25 @@ function lineAnimate() {
     const config = {
         start: {
             background: '#ffffff',
-            bottom: '20%',
+            bottom: '20px',
             width: '50px'
+        },
+        end: {
+            background: 'red',
+            width: '20%',
+            bottom: '70px'
+        },
+        options: {
+            duration: 300,
+            iterations: 1,
+        }
+    }
+
+    const configBGC = {
+        start: {
+            background: '#ffffff',
+            bottom: '30px',
+            opacity: '0.5',
         },
         end: {
             background: 'red',
@@ -70,25 +87,8 @@ function lineAnimate() {
             iterations: 1,
         }
     }
-
-    // const configBGC = {
-    //     start: {
-    //         background: '#ffffff',
-    //         top: '-50px',
-    //         opacity: '0.5'
-    //     },
-    //     end: {
-    //         background: 'red',
-    //         width: '20%',
-    //         bottom: '22px'
-    //     },
-    //     options: {
-    //         duration: 300,
-    //         iterations: 1,
-    //     }
-    // }
-    animateStyle(1, screensaverBlockingLine, config);
-    // animateStyle(1, screensaverBlocking, configBGC);
+    animateStyle(100, screensaverBlockingLine, config);
+    animateStyle(1, screensaverBlocking, configBGC);
     bottomLineCount += 1;
 }
 
@@ -99,7 +99,7 @@ const startSwipe$ = fromEvent(screensaverBlocking, 'mousedown')
         tap(endSwipeStatus = false),
         map(v => converToCoords(v)),
         tap(_ => curentHeightSwipe++),
-        tap(e => console.log(e)),
+        // tap(e => console.log(e)),
         tap(lineAnimate),
         repeat()
     )
@@ -113,9 +113,9 @@ const endSwipe$ = fromEvent(screensaverBlocking, 'mouseup')
 
 function animateBlockScreen() {
     if (bottomLineCount > 15) {
-        console.log(15);
+        // console.log(15);
     } else {
-        console.log(0);
+        // console.log(0);
     }
 }
 
