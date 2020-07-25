@@ -73,7 +73,7 @@ function lineAnimate() {
 
     const configBGC = {
         start: {
-            background: '#ffffff',
+            background: 'red',
             bottom: '30px',
             opacity: '0.5',
         },
@@ -89,6 +89,11 @@ function lineAnimate() {
     }
     animateStyle(100, screensaverBlockingLine, config);
     animateStyle(1, screensaverBlocking, configBGC);
+
+    // merge(
+    //     animateStyle(100, screensaverBlockingLine, config),
+    //     animateStyle(1, screensaverBlocking, configBGC)
+    // ).subscribe();
     bottomLineCount += 1;
 }
 

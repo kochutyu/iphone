@@ -70,6 +70,9 @@ export function converToCoords(velue) {
 }
 
 export function animateStyle(steps, element, config) {
+    // console.log(steps);
+    const durationForStep = Math.floor((config.options.duration / steps));
+    // console.log(durationForStep);
 
     // for (let i = 0; i < steps; i++) {
     let animation = [];
@@ -96,6 +99,11 @@ export function animateStyle(steps, element, config) {
         const unitOfMeasurement = [
             '%', 'cm', 'em', 'ex', 'in', 'mm', 'pc', 'pt', 'px', 'vh', 'vw', 'vmin'
         ];
+
+        // # rgb rgba //!word
+
+        // opacity: 0.7
+        // const name = [opacity, tranform, ]
 
         let startDefault = {
             keyName: null,
@@ -126,7 +134,7 @@ export function animateStyle(steps, element, config) {
             endArrStyle.push(style);
         })
 
-        console.log(endArrStyle, 'THIS');
+        // console.log(endArrStyle, 'THIS');
 
         const startDefault$ = new BehaviorSubject(startDefault)
             .subscribe(res => {
@@ -137,7 +145,7 @@ export function animateStyle(steps, element, config) {
 
         function setStyle$(style, i) {
             return (
-                interval(100)
+                interval(durationForStep)
                 .pipe(
                     tap(time => {
                         if (time !== 0) {
@@ -145,7 +153,7 @@ export function animateStyle(steps, element, config) {
                             element.style[style.keyName] = `${style.selectValue}${style.selectUnit}`;
                         }
                     }),
-                    take(steps)
+                    take(steps + 1)
                 )
             )
         }
@@ -171,7 +179,7 @@ export function animateStyle(steps, element, config) {
 
         }
 
-        console.log(styles);
+        // console.log(styles);
         const findUnitForStartDefault$ = styles
             .pipe(
                 filter(style => {
@@ -188,7 +196,7 @@ export function animateStyle(steps, element, config) {
 
                 }),
                 map(style => style = startDefault),
-                tap(v => console.log(v)),
+                // tap(v => console.log(v)),
                 mergeMap(setStyle$),
                 repeat(1)
             ).subscribe(res => console.log())
