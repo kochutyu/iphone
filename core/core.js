@@ -2,12 +2,7 @@ import {
     Subject,
     pipe,
     fromEvent,
-    merge,
     BehaviorSubject,
-    interval,
-    timer,
-    from,
-    forkJoin
 } from 'rxjs';
 
 import * as color from './color'
@@ -20,26 +15,11 @@ import {
     takeUntil,
     throttleTime,
     tap,
-    map,
-    debounce,
-    debounceTime,
-    repeat,
-    findIndex,
-    last,
-    find,
-    mergeMap,
-    filter,
-    delay,
-    take,
-    takeLast,
 } from 'rxjs/operators';
 
 import {
     phone
 } from '../js/dom';
-
-const sub = new Subject();
-const behaviorSub = new BehaviorSubject();
 
 function blockDropElement() {
     return (

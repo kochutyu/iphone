@@ -34,7 +34,7 @@ let linePosition = {
     },
     options: {
         duration: 200,
-        moveTo: true
+        moveTo: true,
     }
 }
 
@@ -49,7 +49,9 @@ let lineWidth = {
     },
     options: {
         duration: 200,
-        moveTo: true
+        moveTo: true,
+        max_width: '200px',
+        min_width: '80px'
     }
 }
 
