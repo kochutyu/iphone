@@ -10,6 +10,8 @@ import {
     forkJoin
 } from 'rxjs';
 
+import * as color from './color'
+
 import {
     switchMap,
     takeUntil,
@@ -31,7 +33,7 @@ import {
 
 import {
     phone
-} from './dom';
+} from '../js/dom';
 
 const sub = new Subject();
 const behaviorSub = new BehaviorSubject();
@@ -219,7 +221,7 @@ export function animateStyle(steps, element, config) {
                         // console.log(style);
                         if (time !== 0) {
 
-                            console.log(config.options.sign);
+                            // console.log(config.options.sign);
                             config.options.sign ? style.selectValue += 1 : style.selectValue -= 1;
                             // style.selectValue += 1;
                             element.style[style.keyName] = `${style.selectValue}${style.selectUnit}`;

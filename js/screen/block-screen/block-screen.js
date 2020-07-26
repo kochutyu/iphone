@@ -3,7 +3,7 @@ import {
     converToCoords,
     animateStyle
 }
-from '../../core';
+from '../../../core/core';
 
 import {
     screensaverBlocking,
@@ -63,7 +63,7 @@ let bgcPosition = {
         bottom: '70px'
     },
     options: {
-        duration: 200,
+        duration: 1000,
         moveTo: true
     }
 }
@@ -86,13 +86,13 @@ function getSwipeCoords(currentCoords) {
 
     if (destroyAnimate$ !== null) {
         if (previousCoords.y < event.y) {
-            // console.log('down');
+            console.log('down');
             destroyAnimate$.unsubscribe();
             linePosition.options.sign = false;
             lineWidth.options.sign = false;
             bgcPosition.options.sign = true;
         } else {
-            // console.log('up');
+            console.log('up');
             destroyAnimate$.unsubscribe()
             linePosition.options.sign = true;
             lineWidth.options.sign = true;
@@ -105,6 +105,7 @@ function getSwipeCoords(currentCoords) {
 
 function animateElements(event) {
 
+
     const linePositionAnimate$ = animateStyle(30, screensaverBlockingLine, linePosition).pipe(
         tap(newStyle => linePosition = newStyle)
     )
@@ -113,7 +114,7 @@ function animateElements(event) {
         tap(newStyle => lineWidth = newStyle)
     )
 
-    const bgcPositionAnimate$ = animateStyle(70, screensaverBlocking, bgcPosition).pipe(
+    const bgcPositionAnimate$ = animateStyle(100, screensaverBlocking, bgcPosition).pipe(
         tap(newStyle => bgcPosition = newStyle)
     )
 
