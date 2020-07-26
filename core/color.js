@@ -1,20 +1,3 @@
-function HEXToRGB(hex) {
-    var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-
-    if (result) {
-        const color = {
-            r: parseInt(result[1], 16),
-            g: parseInt(result[2], 16),
-            b: parseInt(result[3], 16)
-        }
-        return `rgb(${hexToRgb(hex).r},${hexToRgb(hex).g},${hexToRgb(hex).b})`;
-    }
-    console.error(`${hex} is invalid. Please enter in format "#${color.r}${color.g}${color.b})" !`);
-    return rgb;
-}
-
-// function getRGB(hex) {}
-
 function toRGB(hex) {
     if (!hex) return console.error('toRGB() method expects one argument.');
 
@@ -49,8 +32,6 @@ function toRGB(hex) {
 
     return console.error(`"${hex}" is invalid. Please enter in format "#1c1c1c" !`);
 }
-console.log(toRGB('#33'));
-// console.log(toRGB('#ffffffd'));
 
 function toHEX(rgb) {
     if (!rgb) return console.error('toHEX() method expects one argument.');
