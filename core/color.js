@@ -1,4 +1,4 @@
-function HEXtoRGB(hex) {
+function HEXtoRGB(hex, animate = false) {
     if (!hex) return console.error('HEXtoRGB() method expects one argument.');
 
     const hexValue = hex
@@ -15,7 +15,8 @@ function HEXtoRGB(hex) {
             g: parseInt(hexValue[2] + hexValue[3], 16),
             b: parseInt(hexValue[4] + hexValue[5], 16)
         }
-        return `rgb(${color.r}, ${color.g}, ${color.b})`;
+        return animate ? [color.r, color.g, color.b] :
+            `rgb(${color.r}, ${color.g}, ${color.b})`;
     }
 
     const short =
@@ -28,7 +29,8 @@ function HEXtoRGB(hex) {
             g: parseInt(hexValue[1] + hexValue[1], 16),
             b: parseInt(hexValue[2] + hexValue[2], 16)
         }
-        return `rgb(${color.r}, ${color.g}, ${color.b})`;
+        return animate ? [color.r, color.g, color.b] :
+            `rgb(${color.r}, ${color.g}, ${color.b})`;
     }
 
     return console.error(`"${hex}" is invalid. Please enter in format "#1c1c1c" or "#111" !`);
@@ -74,7 +76,7 @@ function RGBtoHEX(rgb) {
 function RGBtoRGB(rgb) {
     if (!rgb) return console.error('RBGtoRGB() method expects one argument.');
 
-    const condition = ['r', 'g', 'b', 'a', '(', ')', ' '];
+    const condition = ['r', 'g', 'b', 'a', '(', ')', ' ', '[', ']'];
 
     const rgbValues = rgb
         .split('')
@@ -105,13 +107,18 @@ function RGBtoRGB(rgb) {
 
 }
 
-function setColor(color) {
-    const type = ['rgb', 'rgba', '#'];
+export function setColor(color, animate = false) {
+    const type = ['rgb', 'rgba', '#', '[', ']'];
     const result = type.find(type => color.includes(type));
 
-    const RGB = 'rgb' || 'rgba';
+    const RGB = ['rgb', 'rgba', '#', '[', ']'];
     const HEX = '#';
 
-    if (result === HEX) return HEXtoRGB(color);
-    if (result === RGB) return RGBtoHEX(color);
+
+    if (result === HEX) return HEXtoRGB(color, animate);
+
+    const isRGB = RGB.some(res => res === result);
+    if (isRGB) return RGBtoRGB(color, animate);
 }
+
+console.log(setColor('[3, 7, 2]'));

@@ -41,6 +41,8 @@ let linePosition = {
 let lineWidth = {
     start: {
         width: '80px',
+        color: '#3u7h2g',
+        opacity: '0.4'
     },
     end: {
         background: 'red',
@@ -88,13 +90,13 @@ function getSwipeCoords(currentCoords) {
 
     if (destroyAnimate$ !== null) {
         if (previousCoords.y < event.y) {
-            console.log('down');
+            // console.log('down');
             destroyAnimate$.unsubscribe();
             linePosition.options.sign = false;
             lineWidth.options.sign = false;
             bgcPosition.options.sign = true;
         } else {
-            console.log('up');
+            // console.log('up');
             destroyAnimate$.unsubscribe()
             linePosition.options.sign = true;
             lineWidth.options.sign = true;
@@ -109,15 +111,15 @@ function animateElements(event) {
 
 
     const linePositionAnimate$ = animateStyle(30, screensaverBlockingLine, linePosition).pipe(
-        tap(newStyle => linePosition = newStyle)
+        // tap(newStyle => linePosition = newStyle)
     )
 
     const lineWidthAnimate$ = animateStyle(30, screensaverBlockingLine, lineWidth).pipe(
-        tap(newStyle => lineWidth = newStyle)
+        // tap(newStyle => lineWidth = newStyle)
     )
 
     const bgcPositionAnimate$ = animateStyle(100, screensaverBlocking, bgcPosition).pipe(
-        tap(newStyle => bgcPosition = newStyle)
+        // tap(newStyle => bgcPosition = newStyle)
     )
 
     return merge(linePositionAnimate$, lineWidthAnimate$, bgcPositionAnimate$).subscribe();

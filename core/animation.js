@@ -2,6 +2,7 @@ import {
     BehaviorSubject,
     interval,
     from,
+    Subject,
 } from 'rxjs';
 
 import {
@@ -12,7 +13,16 @@ import {
     mergeMap,
     filter,
     take,
+    takeLast,
 } from 'rxjs/operators';
+
+import {
+    setColor
+} from './color';
+
+function setColorAnimation() {
+
+}
 
 export function animateStyle(steps, element, config) {
 
@@ -28,17 +38,43 @@ export function animateStyle(steps, element, config) {
         '%', 'cm', 'em', 'ex', 'in', 'mm', 'pc', 'pt', 'px', 'vh', 'vw', 'vmin'
     ];
 
-    // # rgb rgba //!word
+    const unitOfColors = ['rgb', 'rgba', '#'];
 
-    // opacity: 0.7
-    // const name = [opacity, tranform, ]
+
+
+    const measurementStyles = [];
+    const colorStyles = [];
+    const otherStyles = [];
+
+    let currentUnit = null;
+
+    const conditionForMeasurement = (style) => (
+        unitOfMeasurement.some(unit => {
+            if (JSON.stringify(style).includes(unit)) {
+                currentUnit = unit;
+                return true;
+            }
+            return false
+        })
+    );
+
+    const conditionForColors = (style) => (
+        unitOfColors.some(unit => {
+            if (JSON.stringify(style).includes(unit)) {
+                currentUnit = unit;
+                return true;
+            }
+            return false
+        })
+    );
 
     let startDefault = {
         keyName: null,
         keyValue: null,
         selectValue: null,
         selectUnit: null,
-        selectUnitLength: null
+        selectUnitLength: null,
+        type: null
     }
 
     let endDefault = {
@@ -49,24 +85,67 @@ export function animateStyle(steps, element, config) {
         selectUnitLength: null
     };
 
+    const setTypeOfStyle = (style) => {
+
+        if (conditionForColors(style)) {
+            for (const key in style) {
+                if (style.hasOwnProperty(key)) {
+                    style[key] = setColor(style[key], true);
+                    setStartDefault(currentUnit, style, key, 'color');
+                }
+            }
+
+        } else if (conditionForMeasurement(style)) {
+            for (const key in style) {
+                if (style.hasOwnProperty(key)) {
+                    setStartDefault(currentUnit, style, key, 'measurement');
+                }
+            }
+
+        } else {
+            for (const key in style) {
+                if (style.hasOwnProperty(key)) {
+                    setStartDefault(null, style, key, 'other');
+                }
+            }
+        }
+
+    }
+
     const startDefault$ = new BehaviorSubject(startDefault) // TODO: get obj for work
         .subscribe(res => {
             startDefault = res;
         });
 
-    const setStartDefault = (unit, style, key) => {
+    function getselectValue(type, keyValue, selectUnitLength) {
+        const isMeasurement = type === 'measurement';
+        const isColorOrOther = type === 'color' | type === 'other';
+        if (isMeasurement) return keyValue.slice(0, -selectUnitLength);
+        if (isColorOrOther) return keyValue;
+    }
+
+    const setStartDefault = (unit, style, key, type) => {
         const selectUnit = unit;
-        const selectUnitLength = unit.split('').length;
+        const selectUnitLength =
+            unit === null ?
+            0 :
+            unit.split('').length;
+
         const keyName = key;
-        const keyValue = style[key];
-        const selectValue = +keyValue
-            .slice(0, -selectUnitLength);
+        let keyValue = style[key];
+        const selectValue = getselectValue(type, keyValue, selectUnitLength);
+
+        if (type === 'color') {
+            keyValue = setColor(JSON.stringify(style[key]));
+        }
+
         const newStartDefault = {
             keyName,
             keyValue,
             selectValue,
             selectUnit,
-            selectUnitLength
+            selectUnitLength,
+            type
         }
         startDefault$.next(newStartDefault);
     }
@@ -194,6 +273,7 @@ export function animateStyle(steps, element, config) {
                     }
 
                 }),
+                tap(v => console.log(v)),
                 map(style => style = startDefault),
                 tap(style => keysNameOfStyle.push(style.keyName)),
 
@@ -203,27 +283,16 @@ export function animateStyle(steps, element, config) {
                 repeat(1)
             )
 
-        const getNewPosition = () => {
-            const newConfig = {
-                start: {
-                    background: '#ffffff',
-                    bottom: '20px',
-                    width: '50px'
-                },
-                end: {
-                    background: 'red',
-                    width: '20%',
-                    bottom: '70px'
-                },
-                options: {
-                    duration: 50,
-                    iterations: 1,
-                }
-            }
-            return newConfig
-        }
+        const filterStyles$ = styles
+            .pipe(
+                map(setTypeOfStyle),
+                // tap(style => console.log(style, 'THIS')),
+                map(style => startDefault),
+                tap(v => console.log(v)),
+                repeat(1)
+            )
 
-        return from(findUnitForStartDefault$).pipe(
+        return from(filterStyles$).pipe(
             map(_ => newConfig)
         );
     }
