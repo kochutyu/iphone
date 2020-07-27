@@ -3,6 +3,7 @@ import {
     interval,
     from,
     Subject,
+    merge,
 } from 'rxjs';
 
 import {
@@ -33,6 +34,7 @@ export function animateStyle(steps, element, config) {
     let startArrStyle = [];
     let endArrStyle = [];
     const styles = from(startArrStyle);
+    const endConfig$ = from(endArrStyle);
 
     const unitOfMeasurement = [
         '%', 'cm', 'em', 'ex', 'in', 'mm', 'pc', 'pt', 'px', 'vh', 'vw', 'vmin'
@@ -82,54 +84,75 @@ export function animateStyle(steps, element, config) {
         keyValue: null,
         selectValue: null,
         selectUnit: null,
-        selectUnitLength: null
+        selectUnitLength: null,
+        type: null
     };
 
-    const setTypeOfStyle = (style) => {
+    const setTypeOfStyle = (style, isStartConfig) => {
 
         if (conditionForColors(style)) {
             for (const key in style) {
                 if (style.hasOwnProperty(key)) {
                     style[key] = setColor(style[key], true);
-                    setStartDefault(currentUnit, style, key, 'color');
+                    setStartDefault(currentUnit, style, key, 'color', isStartConfig);
                 }
             }
 
         } else if (conditionForMeasurement(style)) {
             for (const key in style) {
                 if (style.hasOwnProperty(key)) {
-                    setStartDefault(currentUnit, style, key, 'measurement');
+                    setStartDefault(currentUnit, style, key, 'measurement', isStartConfig);
                 }
             }
 
         } else {
             for (const key in style) {
                 if (style.hasOwnProperty(key)) {
-                    setStartDefault(null, style, key, 'other');
+                    setStartDefault(null, style, key, 'other', isStartConfig);
                 }
             }
         }
 
     }
 
-    const startDefault$ = new BehaviorSubject(startDefault) // TODO: get obj for work
+    const startDefault$ = new Subject() // TODO: get obj for work
         .subscribe(res => {
             startDefault = res;
+        });
+
+    const allEndStyles = [];
+
+    let allEndColors = [];
+    let allEndMeasurement = [];
+    let allEndOther = [];
+
+    function filterEndConfig() {
+        allEndColors = allEndStyles.filter(style => style.type === 'color');
+        allEndMeasurement = allEndStyles.filter(style => style.type === 'measurement');
+        allEndOther = allEndStyles.filter(style => style.type === 'other');
+
+        console.log(allEndColors);
+        console.log(allEndMeasurement);
+        console.log(allEndOther);
+    }
+
+    const endDefault$ = new Subject() // TODO: get obj for work
+        .subscribe(res => {
+            allEndStyles.push(res);
+            filterEndConfig();
         });
 
     function getselectValue(type, keyValue, selectUnitLength) {
         const isMeasurement = type === 'measurement';
         const isColorOrOther = type === 'color' | type === 'other';
-        if (isMeasurement) return keyValue.slice(0, -selectUnitLength);
+        if (isMeasurement) return +keyValue.slice(0, -selectUnitLength);
         if (isColorOrOther) return keyValue;
     }
 
-    const setStartDefault = (unit, style, key, type) => {
+    const setStartDefault = (unit, style, key, type, isStartConfig) => {
         const selectUnit = unit;
         const selectUnitLength =
-            unit === null ?
-            0 :
-            unit.split('').length;
+            unit === null ? 0 : unit.split('').length;
 
         const keyName = key;
         let keyValue = style[key];
@@ -147,7 +170,12 @@ export function animateStyle(steps, element, config) {
             selectUnitLength,
             type
         }
-        startDefault$.next(newStartDefault);
+
+        if (isStartConfig) {
+            startDefault$.next(newStartDefault);
+        } else {
+            endDefault$.next(newStartDefault)
+        }
     }
 
     const createObjForStartDefault = () => {
@@ -189,7 +217,7 @@ export function animateStyle(steps, element, config) {
 
         let count = 0;
 
-        let newConfig = {
+        let newConfig = { // !One transform ???
             start: null,
             end: config.end,
             options: config.options
@@ -227,6 +255,22 @@ export function animateStyle(steps, element, config) {
                 take(steps + 1)
             )
 
+        function selectTypeStyle(style) {
+            if (style.type === 'measurement') {
+                config.options.sign ? style.selectValue += 1 : style.selectValue -= 1;
+                element.style[style.keyName] = `${style.selectValue}${style.selectUnit}`;
+            }
+            if (style.type === 'color') {
+                // console.log(style);
+                element.style[style.keyName] = style.keyValue;
+                // console.log(style.keyValue);
+            }
+            if (style.type === 'other') {
+                element.style[style.keyName] = style.keyValue;
+                // console.log(style.keyValue);
+            }
+        }
+
         const setStyle$ = (style, index) => {
             return (
                 interval(durationForStep)
@@ -235,10 +279,8 @@ export function animateStyle(steps, element, config) {
                         // console.log(style);
                         if (time !== 0) {
 
+                            selectTypeStyle(style)
                             // console.log(config.options.sign);
-                            config.options.sign ? style.selectValue += 1 : style.selectValue -= 1;
-                            // style.selectValue += 1;
-                            element.style[style.keyName] = `${style.selectValue}${style.selectUnit}`;
                         }
                     }),
                     // map(v => v = style),
@@ -248,6 +290,7 @@ export function animateStyle(steps, element, config) {
                         newConfig.time = time;
                         return newConfig;
                     }),
+                    // tap(v => console.log(v)),
                     tap(config => {
                         saveCurrentStule.push(config);
                         saveCurrentStule.sort((a, b) => a.time - b.time);
@@ -275,7 +318,7 @@ export function animateStyle(steps, element, config) {
                 }),
                 tap(v => console.log(v)),
                 map(style => style = startDefault),
-                tap(style => keysNameOfStyle.push(style.keyName)),
+                // tap(style => keysNameOfStyle.push(style.keyName)),
 
                 // tap(v => console.log(v)),
                 mergeMap(setStyle$),
@@ -283,14 +326,30 @@ export function animateStyle(steps, element, config) {
                 repeat(1)
             )
 
+        const filterEndConfig$ = endConfig$
+            .pipe(
+                tap(end => {
+                    setTypeOfStyle(end, false);
+                }),
+                map(end => endDefault),
+                // tap(_ => console.log(allEndStyles)),
+                repeat(1)
+            ).subscribe();
+
         const filterStyles$ = styles
             .pipe(
-                map(setTypeOfStyle),
-                // tap(style => console.log(style, 'THIS')),
+                tap(style => {
+                    setTypeOfStyle(style, true);
+                }),
                 map(style => startDefault),
-                tap(v => console.log(v)),
+                tap(_ => {
+                    // console.log(_);
+                }),
+                mergeMap(setStyle$),
                 repeat(1)
-            )
+            );
+
+        // const lol = merge(filterStyles$, filterEndDefault$)
 
         return from(filterStyles$).pipe(
             map(_ => newConfig)
