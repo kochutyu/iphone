@@ -90,6 +90,7 @@ function RGBtoRGB(rgb, animate) {
 
     if (rgbValues.length === 3 && rgbValid) {
         const rgbValue = animate ? rgbValues : rgbValues.join(', ');
+        // console.log(animate ? rgbValue : `rgb(${rgbValue})`);
         return animate ? rgbValue : `rgb(${rgbValue})`;
     }
 

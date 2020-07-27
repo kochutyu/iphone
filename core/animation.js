@@ -131,9 +131,9 @@ export function animateStyle(steps, element, config) {
         allEndMeasurement = allEndStyles.filter(style => style.type === 'measurement');
         allEndOther = allEndStyles.filter(style => style.type === 'other');
 
-        console.log(allEndColors);
-        console.log(allEndMeasurement);
-        console.log(allEndOther);
+        // console.log(allEndColors);
+        // console.log(allEndMeasurement);
+        // console.log(allEndOther);
     }
 
     const endDefault$ = new Subject() // TODO: get obj for work
@@ -255,6 +255,8 @@ export function animateStyle(steps, element, config) {
                 take(steps + 1)
             )
 
+        let counter = 0;
+
         function selectTypeStyle(style) {
             if (style.type === 'measurement') {
                 config.options.sign ? style.selectValue += 1 : style.selectValue -= 1;
@@ -262,8 +264,77 @@ export function animateStyle(steps, element, config) {
             }
             if (style.type === 'color') {
                 // console.log(style);
-                element.style[style.keyName] = style.keyValue;
-                // console.log(style.keyValue);
+
+                // console.log(style);
+                const isEndRGB = allEndColors.find(endStyle => endStyle.keyName === style.keyName);
+                if (isEndRGB) {
+
+                    const currentRGB = style.selectValue;
+                    const endRGB = isEndRGB.selectValue;
+
+                    const stepR = +((endRGB[0] - currentRGB[0]) / durationForStep).toFixed(0);
+                    const stepG = +((endRGB[1] - currentRGB[1]) / durationForStep).toFixed(0);
+                    const stepB = +((endRGB[2] - currentRGB[2]) / durationForStep).toFixed(0);
+
+                    // if (condition) {
+
+                    // }
+
+                    const stepRGB = [
+                        stepR,
+                        stepG,
+                        stepB
+                    ];
+
+                    const newRGB = [
+                        currentRGB[0] + stepR,
+                        currentRGB[1] + stepG,
+                        currentRGB[2] + stepB
+                    ];
+
+                    stepRGB.map((num, i) => {
+                        if (num === 0) {
+                            newRGB[i] = endRGB[i];
+                        }
+                        return num;
+                    })
+
+                    const colorRGB = setColor(`rgb(${newRGB[0]},${newRGB[1]},${newRGB[2]})`);
+                    element.style[style.keyName] = colorRGB;
+                    style.keyValue = colorRGB;
+                    // console.log(style);
+                    // console.log(setColor(`rgb(${stepRGB[0]},${stepRGB[1]},${stepRGB[2]})`));
+                    // console.log(element.style[backgroundColor]);
+                    console.log('---------------------');
+                    console.log(currentRGB, 'START');
+                    console.log(endRGB, 'END');
+
+
+                    // const isNextStepRGB
+                    // if (step === 0 && start < and) {
+
+                    // }
+
+                    console.log(stepRGB, 'stepRGB');
+                    console.log(stepR, 'stepR');
+                    // console.log(stepG, 'stepG');
+                    // console.log(stepB, 'stepB');
+
+                    // console.log(currentRGB, 'currentRGB');
+                    // console.log(endRGB.selectValue);
+                    console.log('lol');
+
+
+
+
+
+
+
+
+                    counter++;
+                }
+                // const endRGB = allEndColors
+                // console.log(allEndColors.some(endStyle => endStyle.keyName === style.keyName));
             }
             if (style.type === 'other') {
                 element.style[style.keyName] = style.keyValue;
@@ -283,11 +354,23 @@ export function animateStyle(steps, element, config) {
                             // console.log(config.options.sign);
                         }
                     }),
+                    // tap(_ => console.log(_)),
                     // map(v => v = style),
                     map(time => {
+
                         const newConfig = Object.create(style);
-                        newConfig[style.keyName] = `${style.selectValue}${style.selectUnit}`;
                         newConfig.time = time;
+                        if (style.type === 'measurement') {
+                            newConfig[style.keyName] = `${style.selectValue}${style.selectUnit}`;
+                        }
+
+                        if (style.type === 'color') {
+                            newConfig[style.keyName] = style.keyValue;
+                        }
+
+                        if (style.type === 'other') {
+                            newConfig.opacity = '0'
+                        }
                         return newConfig;
                     }),
                     // tap(v => console.log(v)),
@@ -316,7 +399,7 @@ export function animateStyle(steps, element, config) {
                     }
 
                 }),
-                tap(v => console.log(v)),
+                // tap(v => console.log(v)),
                 map(style => style = startDefault),
                 // tap(style => keysNameOfStyle.push(style.keyName)),
 
@@ -331,9 +414,9 @@ export function animateStyle(steps, element, config) {
                 tap(end => {
                     setTypeOfStyle(end, false);
                 }),
+                // tap(_ => console.log(_)),
                 map(end => endDefault),
-                // tap(_ => console.log(allEndStyles)),
-                repeat(1)
+                // repeat(1)
             ).subscribe();
 
         const filterStyles$ = styles
@@ -342,9 +425,9 @@ export function animateStyle(steps, element, config) {
                     setTypeOfStyle(style, true);
                 }),
                 map(style => startDefault),
-                tap(_ => {
-                    // console.log(_);
-                }),
+                // tap(_ => {
+                //     console.log(_);
+                // }),
                 mergeMap(setStyle$),
                 repeat(1)
             );

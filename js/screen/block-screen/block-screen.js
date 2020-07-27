@@ -37,15 +37,13 @@ let linePosition = {
 let lineWidth = {
     start: {
         width: '80px',
-        color: "rgb(1,4,2)",
         // opacity: '0.4',
-        backgroundColor: 'rgb(255,255,255)'
+        backgroundColor: "rgb(0,50,23)",
     },
     end: {
-        backgroundColor: 'rbg(0, 0, 0)',
+        backgroundColor: "rgb(255, 255, 255)",
         width: '20%',
         bottom: '70px',
-        color: "rgb(1,4,2)",
     },
     options: {
         duration: 100,
@@ -61,7 +59,7 @@ let bgcPosition = {
     },
     end: {},
     options: {
-        duration: 1000,
+        duration: 500,
         moveTo: true
     }
 }
@@ -112,7 +110,7 @@ function animateElements(event) {
         tap(newStyle => lineWidth = newStyle)
     )
 
-    const bgcPositionAnimate$ = animateStyle(100, screensaverBlocking, bgcPosition).pipe(
+    const bgcPositionAnimate$ = animateStyle(30, screensaverBlocking, bgcPosition).pipe(
         tap(newStyle => bgcPosition = newStyle)
     )
 
