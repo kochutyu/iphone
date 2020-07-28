@@ -263,83 +263,50 @@ export function animateStyle(steps, element, config) {
                 element.style[style.keyName] = `${style.selectValue}${style.selectUnit}`;
             }
             if (style.type === 'color') {
-                // console.log(style);
 
-                // console.log(style);
-                const isEndRGB = allEndColors.find(endStyle => endStyle.keyName === style.keyName);
-                if (isEndRGB) {
+                const isStyle = allEndColors.find(endStyle => endStyle.keyName === style.keyName);
 
+                if (isStyle) {
                     const currentRGB = style.selectValue;
-                    const endRGB = isEndRGB.selectValue;
+                    const endRGB = isStyle.selectValue;
+                    const isAnimate = currentRGB.some((color, i, arr) => arr[i] !== endRGB[i]);
 
-                    const stepR = +((endRGB[0] - currentRGB[0]) / durationForStep).toFixed(0);
-                    const stepG = +((endRGB[1] - currentRGB[1]) / durationForStep).toFixed(0);
-                    const stepB = +((endRGB[2] - currentRGB[2]) / durationForStep).toFixed(0);
+                    if (isAnimate) {
+                        const stepR = +((endRGB[0] - currentRGB[0]) / durationForStep).toFixed(0);
+                        const stepG = +((endRGB[1] - currentRGB[1]) / durationForStep).toFixed(0);
+                        const stepB = +((endRGB[2] - currentRGB[2]) / durationForStep).toFixed(0);
 
-                    // if (condition) {
+                        const stepRGB = [
+                            stepR <= 0 ? -stepR : stepR,
+                            stepG <= 0 ? -stepG : stepG,
+                            stepB <= 0 ? -stepB : stepB
+                        ];
 
-                    // }
+                        const newRGB = [
+                            currentRGB[0] + stepR,
+                            currentRGB[1] + stepG,
+                            currentRGB[2] + stepB
+                        ];
 
-                    const stepRGB = [
-                        stepR,
-                        stepG,
-                        stepB
-                    ];
+                        stepRGB.forEach((num, i) => {
+                            if (num === 0) {
+                                newRGB[i] = endRGB[i];
+                            }
+                        })
 
-                    const newRGB = [
-                        currentRGB[0] + stepR,
-                        currentRGB[1] + stepG,
-                        currentRGB[2] + stepB
-                    ];
+                        const colorRGB = setColor(`rgb(${newRGB[0]},${newRGB[1]},${newRGB[2]})`);
+                        element.style[style.keyName] = colorRGB;
+                        style.keyValue = colorRGB;
+                    }
 
-                    stepRGB.map((num, i) => {
-                        if (num === 0) {
-                            newRGB[i] = endRGB[i];
-                        }
-                        return num;
-                    })
-
-                    const colorRGB = setColor(`rgb(${newRGB[0]},${newRGB[1]},${newRGB[2]})`);
-                    element.style[style.keyName] = colorRGB;
-                    style.keyValue = colorRGB;
-                    // console.log(style);
-                    // console.log(setColor(`rgb(${stepRGB[0]},${stepRGB[1]},${stepRGB[2]})`));
-                    // console.log(element.style[backgroundColor]);
-                    console.log('---------------------');
-                    console.log(currentRGB, 'START');
-                    console.log(endRGB, 'END');
-
-
-                    // const isNextStepRGB
-                    // if (step === 0 && start < and) {
-
-                    // }
-
-                    console.log(stepRGB, 'stepRGB');
-                    console.log(stepR, 'stepR');
-                    // console.log(stepG, 'stepG');
-                    // console.log(stepB, 'stepB');
-
-                    // console.log(currentRGB, 'currentRGB');
-                    // console.log(endRGB.selectValue);
-                    console.log('lol');
-
-
-
-
-
-
-
-
-                    counter++;
                 }
-                // const endRGB = allEndColors
-                // console.log(allEndColors.some(endStyle => endStyle.keyName === style.keyName));
+
             }
+
             if (style.type === 'other') {
                 element.style[style.keyName] = style.keyValue;
-                // console.log(style.keyValue);
             }
+
         }
 
         const setStyle$ = (style, index) => {
@@ -369,7 +336,7 @@ export function animateStyle(steps, element, config) {
                         }
 
                         if (style.type === 'other') {
-                            newConfig.opacity = '0'
+                            newConfig['opacity'] = '0'
                         }
                         return newConfig;
                     }),
